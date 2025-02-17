@@ -24,7 +24,7 @@ def connect_to_database(host=None, database=None, username=None, password=None, 
 	if mode == 'read':
 		# Use pyodbc directly for read connections
 		conn = pyodbc.connect(
-			f'Driver={{SQL Server}};'
+			f'Driver={{FreeTDS}};'
 			f'Server={host};Database={database};'
 			f'UID={username};PWD={password}'
 		)
