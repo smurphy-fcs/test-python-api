@@ -24,7 +24,7 @@ def connect_to_database(host=None, database=None, username=None, password=None, 
 	if mode == 'read':
 		# Use pyodbc directly for read connections
 		conn = pyodbc.connect(
-			f'Driver={{ODBC Driver 17 for SQL Server}};'
+			f'Driver={{ODBC Driver 18 for SQL Server}};'
 			f'Server={host};Database={database};'
 			f'UID={username};PWD={password}'
 		)
@@ -86,3 +86,8 @@ def retrieve_password(name: str) -> str:
 	password = cipher.decrypt(encrypted_password).decode()
 
 	return password
+
+
+conn = connect_to_database(mode='write')
+
+print(conn)
