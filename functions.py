@@ -86,8 +86,3 @@ def retrieve_password(name: str) -> str:
 	password = cipher.decrypt(encrypted_password).decode()
 
 	return password
-
-
-conn = connect_to_database(mode='write')
-
-print(conn)
