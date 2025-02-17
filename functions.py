@@ -7,7 +7,7 @@ from cryptography.fernet import Fernet
 
 def connect_to_database(host=None, database=None, username=None, password=None, driver = 'pyodbc', dialect='mssql', driver2='ODBC Driver 18 for SQL Server', mode='read', fast_execution=True):
 	# Load credentials if not provided
-	data_warehouse_credentials = {'username':'python','password':retrieve_password('dw_python'),'host':'fcazdwprod02','database':'data'}
+	data_warehouse_credentials = {'username':'python','password':retrieve_password('dw_python'),'host':'192.168.100.27','database':'data'}
 	
 	if host is None:
 		host = data_warehouse_credentials['host']
@@ -24,9 +24,12 @@ def connect_to_database(host=None, database=None, username=None, password=None, 
 	if mode == 'read':
 		# Use pyodbc directly for read connections
 		conn = pyodbc.connect(
-			f'Driver={{ODBC Driver 18 for SQL Server}};'
-			f'Server={host};Database={database};'
-			f'UID={username};PWD={password}'
+			f'DRIVER={driver2};'  # Ensure curly braces around the driver name
+			f'TrustServerCertificate=yes;'
+			f'SERVER={host};'
+			f'DATABASE={database};'
+			f'UID={username};'
+			f'PWD={password}'
 		)
 	elif mode == 'write':
 		# Construct the connection string explicitly without using odbc_connect
