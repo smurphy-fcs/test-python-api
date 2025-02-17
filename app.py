@@ -43,7 +43,7 @@ def read_root():
 
 @app.get("/fuelsites", dependencies=[Depends(verify_api_key)])
 def fuelsites():
-    conn = f.connect_to_database(mode='write')
+    conn = f.connect_to_database()
     cursor = conn.cursor()
     cursor.execute("SELECT TOP (10) * FROM [data].[location].[fuel_sites]")
     rows = cursor.fetchall()
