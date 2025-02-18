@@ -46,10 +46,15 @@ def fuelsites():
     conn = f.connect_to_database()
     cursor = conn.cursor()
     cursor.execute("SELECT TOP (10) * FROM [data].[location].[fuel_sites]")
+
+    # Get column names
+    columns = [column[0] for column in cursor.description]
+    
     rows = cursor.fetchall()
     conn.close()
 
-    return [{"fuel_site_id": row[0], "cat_no": row[1], "fuel_site_status": row[2], "site_name": row[3]} for row in rows]  # Modify based on your schema
+    #return [{"fuel_site_id": row[0], "cat_no": row[1], "fuel_site_status": row[2], "site_name": row[3]} for row in rows]
+    return [dict(zip(columns, row)) for row in rows]
 
 @app.exception_handler(Exception)
 async def generic_exception_handler(request: Request, exc: Exception):
