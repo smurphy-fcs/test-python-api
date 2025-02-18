@@ -42,19 +42,36 @@ def read_root():
     return {"message": "Welcome to the API"}
 
 @app.get("/fuelsites", dependencies=[Depends(verify_api_key)])
-def fuelsites():
+def fuelsites(limit: int = 50, last_id: int = 0):
+    MAX_LIMIT = 100  # Set a maximum limit
+    limit = min(limit, MAX_LIMIT)  # Ensure limit does not exceed MAX_LIMIT
+
     conn = f.connect_to_database()
     cursor = conn.cursor()
-    cursor.execute("SELECT TOP (10) * FROM [data].[location].[fuel_sites]")
 
-    # Get column names
-    columns = [column[0] for column in cursor.description]
+    # Fetch the next `limit` rows where ID > last seen ID
+    query = f"""
+        SELECT TOP {limit} * 
+        FROM [data].[location].[fuel_sites] 
+        WHERE fuel_site_id > {last_id} 
+        ORDER BY fuel_site_id
+    """
+    cursor.execute(query)
     
+    columns = [column[0] for column in cursor.description]
     rows = cursor.fetchall()
     conn.close()
 
-    #return [{"fuel_site_id": row[0], "cat_no": row[1], "fuel_site_status": row[2], "site_name": row[3]} for row in rows]
-    return [dict(zip(columns, row)) for row in rows]
+    # Determine last_id for next page
+    new_last_id = rows[-1][0] if rows else None
+
+    return {
+        "limit": limit,
+        "max_limit": MAX_LIMIT,
+        "last_id": new_last_id,  # Provide this in the next request for pagination
+        "data": [dict(zip(columns, row)) for row in rows]
+    }
+
 
 @app.exception_handler(Exception)
 async def generic_exception_handler(request: Request, exc: Exception):
