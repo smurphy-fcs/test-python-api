@@ -30,7 +30,7 @@ def verify_api_key(api_key: str = Security(api_key_header)):
     if api_key != API_KEY:
         raise HTTPException(status_code=403, detail="Invalid API Key")
 
-@app.get("fuelsites/fuelsites", dependencies=[Depends(verify_api_key)])
+@app.get("/fuelsites/fuelsites", dependencies=[Depends(verify_api_key)])
 def fuelsites(limit: int = 50, last_id: int = 0):
     MAX_LIMIT = 100  # Set a maximum limit
     limit = min(limit, MAX_LIMIT)  # Ensure limit does not exceed MAX_LIMIT
@@ -61,7 +61,7 @@ def fuelsites(limit: int = 50, last_id: int = 0):
         "data": [dict(zip(columns, row)) for row in rows]
     }
 
-@app.get("fuelsites/fuelsite/{fuel_site_id}", dependencies=[Depends(verify_api_key)])
+@app.get("/fuelsites/fuelsite/{fuel_site_id}", dependencies=[Depends(verify_api_key)])
 def get_fuel_site(fuel_site_id: int):
     conn = f.connect_to_database()
     cursor = conn.cursor()
@@ -87,7 +87,7 @@ def get_fuel_site(fuel_site_id: int):
 
     return fuel_site
 
-@app.get("fuelsites/pricing_attributes/{fuel_site_id}", dependencies=[Depends(verify_api_key)])
+@app.get("/fuelsites/pricing_attributes/{fuel_site_id}", dependencies=[Depends(verify_api_key)])
 def get_pricing_attributes(fuel_site_id: int):
     conn = f.connect_to_database()
     cursor = conn.cursor()
@@ -99,17 +99,16 @@ def get_pricing_attributes(fuel_site_id: int):
         WHERE fuel_site_id = ?
     """, (fuel_site_id,))
     
-    row = cursor.fetchone()  # Fetch only one row
-
+    rows = cursor.fetchall()
     conn.close()
 
     # Check if the fuel site exists
-    if row is None:
+    if rows is None:
         raise HTTPException(status_code=404, detail="Fuel site not found")
     
     # Convert the row to a dictionary using column names
     columns = [column[0] for column in cursor.description]
-    fuel_site = dict(zip(columns, row))
+    fuel_site = [dict(zip(columns, row)) for row in rows]
 
     return fuel_site
 
