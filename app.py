@@ -133,6 +133,31 @@ def get_cards_accepted_by_site(fuel_site_id: int):
     
     # Convert the row to a dictionary using column names
     columns = [column[0] for column in cursor.description]
+    cards = [dict(zip(columns, row)) for row in rows]
+
+    return cards
+
+@app.get("/fuelsites/cards_accepted/{fuel_card_issuer_id}", dependencies=[Depends(verify_api_key)])
+def get_cards_accepted_sites_by_card_issuer_id(fuel_card_issuer_id: int):
+    conn = f.connect_to_database()
+    cursor = conn.cursor()
+
+    # Query for the specific fuel site by fuel_site_id
+    cursor.execute("""
+        SELECT * 
+        FROM [data].[location].[fuelsite_cards_accepted]
+        WHERE fuel_card_issuer_id = ?
+    """, (fuel_card_issuer_id,))
+    
+    rows = cursor.fetchall()
+    conn.close()
+
+    # Check if the fuel site exists
+    if rows is None:
+        raise HTTPException(status_code=404, detail="Fuel site not found")
+    
+    # Convert the row to a dictionary using column names
+    columns = [column[0] for column in cursor.description]
     fuel_site = [dict(zip(columns, row)) for row in rows]
 
     return fuel_site
