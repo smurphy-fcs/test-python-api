@@ -72,6 +72,32 @@ def fuelsites(limit: int = 50, last_id: int = 0):
         "data": [dict(zip(columns, row)) for row in rows]
     }
 
+@app.get("/fuelsite/{fuel_site_id}", dependencies=[Depends(verify_api_key)])
+def get_fuel_site(fuel_site_id: int):
+    conn = f.connect_to_database()
+    cursor = conn.cursor()
+
+    # Query for the specific fuel site by fuel_site_id
+    cursor.execute("""
+        SELECT * 
+        FROM [data].[location].[fuel_sites] 
+        WHERE fuel_site_id = ?
+    """, (fuel_site_id,))
+    
+    row = cursor.fetchone()  # Fetch only one row
+
+    conn.close()
+
+    # Check if the fuel site exists
+    if row is None:
+        raise HTTPException(status_code=404, detail="Fuel site not found")
+    
+    # Convert the row to a dictionary using column names
+    columns = [column[0] for column in cursor.description]
+    fuel_site = dict(zip(columns, row))
+
+    return fuel_site
+
 
 @app.exception_handler(Exception)
 async def generic_exception_handler(request: Request, exc: Exception):
