@@ -137,7 +137,7 @@ def get_cards_accepted_by_site(fuel_site_id: int):
 
     return cards
 
-@app.get("/fuelsites/sites_by_card/{fuel_card_issuer_id}", dependencies=[Depends(verify_api_key)])
+@app.get("/fuelsites/cards_accepted/{fuel_card_issuer_id}", dependencies=[Depends(verify_api_key)])
 def get_cards_accepted_sites_by_card_issuer_id(fuel_card_issuer_id: int):
     conn = f.connect_to_database()
     cursor = conn.cursor()
