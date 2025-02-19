@@ -7,7 +7,7 @@ from cryptography.fernet import Fernet
 
 def connect_to_database(host=None, database=None, username=None, password=None, driver = 'pyodbc', dialect='mssql', driver2='ODBC Driver 18 for SQL Server', mode='read', fast_execution=True):
 	# Load credentials if not provided
-	data_warehouse_credentials = {'username':'python','password':retrieve_password('dw_api'),'host':'192.168.100.27','database':'data'}
+	data_warehouse_credentials = {'username':'API_User','password':retrieve_password('dw_api'),'host':'192.168.100.27','database':'data'}
 	
 	if host is None:
 		host = data_warehouse_credentials['host']
