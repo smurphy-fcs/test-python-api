@@ -31,8 +31,8 @@ def verify_api_key(api_key: str = Security(api_key_header)):
         raise HTTPException(status_code=403, detail="Invalid API Key")
 
 @app.get("/fuelsites/fuelsites", dependencies=[Depends(verify_api_key)], tags=["Fuelsites"])
-def fuelsites(limit: int = 50, last_id: int = 0):
-    MAX_LIMIT = 100  # Set a maximum limit
+def fuelsites(limit: int = 1000, last_id: int = 0):
+    MAX_LIMIT = 1000  # Set a maximum limit
     limit = min(limit, MAX_LIMIT)  # Ensure limit does not exceed MAX_LIMIT
 
     conn = f.connect_to_database()
@@ -111,6 +111,38 @@ def get_pricing_attributes(fuel_site_id: int):
     fuel_site = [dict(zip(columns, row)) for row in rows]
 
     return fuel_site
+
+@app.get("/fuelsites/pricing_attributes", dependencies=[Depends(verify_api_key)], tags=["Fuelsites"])
+def get_all_pricing_attributes(limit: int = 1000, last_id: int = 0):
+    MAX_LIMIT = 1000  # Set a maximum limit
+    limit = min(limit, MAX_LIMIT)  # Ensure limit does not exceed MAX_LIMIT
+
+    conn = f.connect_to_database()
+    cursor = conn.cursor()
+
+    # Fetch the next `limit` rows where ID > last seen ID
+    query = f"""
+        SELECT TOP {limit} *
+        FROM [data].[location].[fuelsite_pricing_attributes] 
+        WHERE fuel_site_id > {last_id} 
+        ORDER BY fuel_site_id
+    """
+    cursor.execute(query)
+    
+    columns = [column[0] for column in cursor.description]
+    rows = cursor.fetchall()
+    conn.close()
+
+    # Determine last_id for next page
+    new_last_id = rows[-1][0] if rows else None
+
+    return {
+        "limit": limit,
+        "max_limit": MAX_LIMIT,
+        "last_id": new_last_id,  # Provide this in the next request for pagination
+        "data": [dict(zip(columns, row)) for row in rows]
+    }
+
 
 @app.get("/fuelsites/cards_accepted/{fuel_site_id}", dependencies=[Depends(verify_api_key)], tags=["Fuelsites"])
 def get_cards_accepted_by_site(fuel_site_id: int):
