@@ -124,8 +124,8 @@ def get_all_pricing_attributes(limit: int = 1000, last_id: int = 0):
     query = f"""
         SELECT TOP {limit} *
         FROM [data].[location].[fuelsite_pricing_attributes] 
-        WHERE fuel_site_id > {last_id} 
-        ORDER BY fuel_site_id
+        WHERE id > {last_id} 
+        ORDER BY id
     """
     cursor.execute(query)
     
@@ -168,6 +168,37 @@ def get_cards_accepted_by_site(fuel_site_id: int):
     cards = [dict(zip(columns, row)) for row in rows]
 
     return cards
+
+@app.get("/fuelsites/cards_accepted", dependencies=[Depends(verify_api_key)], tags=["Fuelsites"])
+def get_all_cards_accepted_by_sites(limit: int = 1000, last_id: int = 0):
+    MAX_LIMIT = 1000  # Set a maximum limit
+    limit = min(limit, MAX_LIMIT)  # Ensure limit does not exceed MAX_LIMIT
+
+    conn = f.connect_to_database()
+    cursor = conn.cursor()
+
+    # Fetch the next `limit` rows where ID > last seen ID
+    query = f"""
+        SELECT TOP {limit} *
+        FROM [data].[location].[fuelsite_cards_accepted]
+        WHERE id > {last_id} 
+        ORDER BY id
+    """
+    cursor.execute(query)
+    
+    columns = [column[0] for column in cursor.description]
+    rows = cursor.fetchall()
+    conn.close()
+
+    # Determine last_id for next page
+    new_last_id = rows[-1][0] if rows else None
+
+    return {
+        "limit": limit,
+        "max_limit": MAX_LIMIT,
+        "last_id": new_last_id,  # Provide this in the next request for pagination
+        "data": [dict(zip(columns, row)) for row in rows]
+    }
 
 @app.get("/fuelsites/sites_by_card/{fuel_card_issuer_id}", dependencies=[Depends(verify_api_key)], tags=["Fuelsites"])
 def get_cards_accepted_sites_by_card_issuer_id(fuel_card_issuer_id: int, limit: int = 50, last_id: int = 0):
