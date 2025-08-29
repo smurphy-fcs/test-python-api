@@ -12,15 +12,14 @@ app = FastAPI(title = "Motia API")
 
 # Error Logging Middleware
 @app.middleware("http")
-
 async def log_requests(request, call_next):
     logger.info(f"Incoming request: {request.method} {request.url}")
     try:
         response = await call_next(request)
         return response
-    except Exception as e:
-        logger.error(f"Unhandled error: {str(e)}", exc_info=True)
-        return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
+    except Exception:
+        logger.exception("Unhandled error")  # logs full traceback
+        raise
 
 
 
