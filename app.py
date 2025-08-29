@@ -12,6 +12,7 @@ app = FastAPI(title = "Motia API")
 
 # Error Logging Middleware
 @app.middleware("http")
+
 async def log_requests(request, call_next):
     logger.info(f"Incoming request: {request.method} {request.url}")
     try:
@@ -19,7 +20,8 @@ async def log_requests(request, call_next):
         return response
     except Exception as e:
         logger.error(f"Unhandled error: {str(e)}", exc_info=True)
-        return {"detail": "Internal Server Error"}
+        return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
+
 
 
 API_KEY = "JD0XTu7Dte68MSOW7oNRSzSJsv9uKLSCGhVlDcuQ0Gw"  # Change this to a secure key
